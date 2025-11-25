@@ -1,9 +1,7 @@
-import aio_pika
 from aio_pika import connect_robust, Message, DeliveryMode
 from aio_pika.abc import AbstractRobustConnection, AbstractRobustChannel
 from typing import Optional
 import logging
-import json
 from app.models import DlqMessage
 
 logger = logging.getLogger(__name__)
@@ -17,7 +15,7 @@ class RabbitMqClient:
         rabbitmq_url: str,
         push_queue_name: str,
         failed_queue_name: str,
-        prefetch_count: int
+        prefetch_count: int,
     ):
         self.rabbitmq_url = rabbitmq_url
         self.push_queue_name = push_queue_name
@@ -31,17 +29,11 @@ class RabbitMqClient:
         self.connection = await connect_robust(self.rabbitmq_url)
         self.channel = await self.connection.channel()
         await self.channel.set_qos(prefetch_count=self.prefetch_count)
-        
+
         # Declare queues
-        await self.channel.declare_queue(
-            self.push_queue_name,
-            durable=True
-        )
-        await self.channel.declare_queue(
-            self.failed_queue_name,
-            durable=True
-        )
-        
+        await self.channel.declare_queue(self.push_queue_name, durable=True)
+        await self.channel.declare_queue(self.failed_queue_name, durable=True)
+
         logger.info("RabbitMQ connection established")
 
     async def close(self):
@@ -54,7 +46,7 @@ class RabbitMqClient:
     async def consume_messages(self, callback):
         """Start consuming messages from queue"""
         queue = await self.channel.get_queue(self.push_queue_name)
-        
+
         async with queue.iterator() as queue_iter:
             async for message in queue_iter:
                 async with message.process():
@@ -63,18 +55,16 @@ class RabbitMqClient:
     async def publish_to_dlq(self, dlq_message: DlqMessage):
         """Publish failed message to Dead Letter Queue"""
         message_body = dlq_message.model_dump_json().encode()
-        
-        message = Message(
-            message_body,
-            delivery_mode=DeliveryMode.PERSISTENT
-        )
-        
+
+        message = Message(message_body, delivery_mode=DeliveryMode.PERSISTENT)
+
         await self.channel.default_exchange.publish(
-            message,
-            routing_key=self.failed_queue_name
+            message, routing_key=self.failed_queue_name
         )
-        
-        logger.debug(f"Message published to DLQ: {dlq_message.original_message.idempotency_key}")
+
+        logger.debug(
+            f"Message published to DLQ: {dlq_message.original_message.idempotency_key}"
+        )
 
     async def health_check(self) -> bool:
         """Health check for RabbitMQ"""

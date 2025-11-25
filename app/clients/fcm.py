@@ -20,8 +20,7 @@ class FcmClient:
         """Initialize FCM credentials"""
         scopes = ["https://www.googleapis.com/auth/firebase.messaging"]
         self.credentials = service_account.Credentials.from_service_account_file(
-            self.credentials_path,
-            scopes=scopes
+            self.credentials_path, scopes=scopes
         )
         logger.info("FCM client initialized")
 
@@ -36,35 +35,28 @@ class FcmClient:
         return self.credentials.token
 
     async def send_notification(
-        self,
-        device_token: str,
-        title: str,
-        body: str,
-        data: dict
+        self, device_token: str, title: str, body: str, data: dict
     ):
         """Send push notification via FCM"""
         url = f"https://fcm.googleapis.com/v1/projects/{self.project_id}/messages:send"
-        
+
         access_token = self._get_access_token()
-        
+
         payload = {
             "message": {
                 "token": device_token,
-                "notification": {
-                    "title": title,
-                    "body": body
-                },
-                "data": data
+                "notification": {"title": title, "body": body},
+                "data": data,
             }
         }
-        
+
         headers = {
             "Authorization": f"Bearer {access_token}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
-        
+
         response = await self.http_client.post(url, json=payload, headers=headers)
-        
+
         if response.status_code == 200:
             logger.info("Push notification sent successfully")
         else:

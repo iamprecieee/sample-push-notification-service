@@ -5,6 +5,7 @@ from enum import Enum
 
 class HealthStatus(str, Enum):
     """Overall health status"""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -12,6 +13,7 @@ class HealthStatus(str, Enum):
 
 class ServiceHealth(BaseModel):
     """Individual service health check"""
+
     status: HealthStatus
     response_time_ms: Optional[int] = None
     circuit_breaker: Optional[str] = None
@@ -20,6 +22,7 @@ class ServiceHealth(BaseModel):
 
 class HealthCheckResponse(BaseModel):
     """Complete health check response"""
+
     status: HealthStatus
     timestamp: str
     checks: Dict[str, ServiceHealth]

@@ -17,9 +17,7 @@ class RedisClient:
     async def connect(self):
         """Establish Redis connection"""
         self.client = redis.from_url(
-            self.redis_url,
-            encoding="utf-8",
-            decode_responses=True
+            self.redis_url, encoding="utf-8", decode_responses=True
         )
         logger.info("Redis connection established")
 

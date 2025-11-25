@@ -1,11 +1,10 @@
 from pydantic import BaseModel, Field
-from typing import Optional
-from datetime import datetime
 from enum import Enum
 
 
 class NotificationMessage(BaseModel):
     """Message format for push notifications"""
+
     notification_id: str
     idempotency_key: str
     user_id: str
@@ -13,7 +12,7 @@ class NotificationMessage(BaseModel):
     sender_id: str
     sender_name: str
     message_preview: str
-    device_token: str 
+    device_token: str
     priority: int = 1
     metadata: dict = Field(default_factory=dict)
     created_by: str
@@ -22,6 +21,7 @@ class NotificationMessage(BaseModel):
 
 class DlqMessage(BaseModel):
     """Message format for Dead Letter Queue"""
+
     original_message: NotificationMessage
     failure_reason: str
     failed_at: str
@@ -29,6 +29,7 @@ class DlqMessage(BaseModel):
 
 class IdempotencyStatus(str, Enum):
     """Status of idempotency check"""
+
     NOT_FOUND = "not_found"
     PROCESSING = "processing"
     SENT = "sent"

@@ -5,6 +5,7 @@ from enum import Enum
 
 class NotificationStatus(str, Enum):
     """Notification processing status"""
+
     QUEUED = "queued"
     PROCESSING = "processing"
     SENT = "sent"
@@ -14,6 +15,7 @@ class NotificationStatus(str, Enum):
 
 class AuditLog(BaseModel):
     """Audit log entry for notification"""
+
     trace_id: str
     user_id: str
     notification_type: str = "push"

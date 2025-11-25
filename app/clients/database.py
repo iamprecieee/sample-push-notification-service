@@ -17,9 +17,7 @@ class DatabaseClient:
     async def connect(self):
         """Create database connection pool"""
         self.pool = await asyncpg.create_pool(
-            self.database_url,
-            min_size=2,
-            max_size=10
+            self.database_url, min_size=2, max_size=10
         )
         logger.info("PostgreSQL connection pool created")
 
@@ -36,7 +34,7 @@ class DatabaseClient:
                 sender_name, status, error_message, metadata
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         """
-        
+
         async with self.pool.acquire() as conn:
             await conn.execute(
                 query,
@@ -47,9 +45,9 @@ class DatabaseClient:
                 audit_log.sender_name,
                 audit_log.status.value,
                 audit_log.error_message,
-                json.dumps(audit_log.metadata)
+                json.dumps(audit_log.metadata),
             )
-        
+
         logger.debug(f"Audit log written for {audit_log.trace_id}")
 
     async def get_notification_status(self, trace_id: str) -> Optional[dict]:
@@ -62,12 +60,12 @@ class DatabaseClient:
             ORDER BY created_at DESC
             LIMIT 1
         """
-        
+
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(query, trace_id)
             if row:
                 return dict(row)
-        
+
         return None
 
     async def health_check(self) -> bool:
